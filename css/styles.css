@@ -1,0 +1,92 @@
+* { 
+	-moz-box-sizing: border-box; 
+	-webkit-box-sizing: border-box; 
+	box-sizing: border-box; 
+}
+
+html{ height: 100%;}
+
+body{
+	padding: 20px 100px 20px 100px;
+	height: 90%;
+}
+
+div{
+	border: solid 1px black;
+}
+
+div#resultDiv{
+	height: 100%;
+	width: 300px;
+	float: left;	
+	overflow : auto;
+}
+
+ul{
+	list-style-type: none;
+	margin : 5px 5px;
+	padding : 0px;
+}
+
+li{
+	padding: 0px;
+	margin : 0px;
+}
+
+li.repository:hover{
+	background-color: #EEF8FE;
+}
+
+
+div#displayInfo{
+	height: 100%;
+    width: 1200px;
+    width: -moz-calc(100% - 300px);
+    float: left;
+}
+
+
+div#testGalleria{
+    width: 100%;
+    height : 30%;
+}
+
+div#resultCollaborator{
+    width: 100%;
+    padding: 5px;
+    overflow: auto;
+    text-align: center;
+    vertical-align: middle;
+}
+
+div#second{
+    width: 100%;
+    height: 70%;
+    padding: 5px;
+    overflow: auto;
+    text-align:center;
+}
+
+div#resultCollaborator a{
+    display: inline-block;
+    margin: 5px;
+    float: center;
+}
+
+div#resultCollaborator a, div#resultCollaborator img{
+    height: 100px;
+    width: 100px;
+}
+
+div#resultCollaborator img{
+    opacity:0.40;
+    filter:alpha(opacity=40);
+}
+
+div#resultCollaborator img:hover{
+    opacity:1;
+    filter:alpha(opacity=100);
+}
+
+
+
