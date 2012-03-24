@@ -17,6 +17,7 @@
         <div id="resultCollaborator"></div>
         <p id="pieTitle"></p>
         <div id="holder"></div>
+        <div id="barHolder"></div>
     </div>
 
     <script type="text/template" id="tpl-repository-resultats">
@@ -53,6 +54,7 @@
     <script src="libs/githubApiV3.js"></script>
     <script src="libs/github.js"></script>
     <script src="libs/pie.js"></script>
+    <script src="libs/highcharts.js"></script>
 
 
     <script type="text/javascript">
@@ -217,13 +219,11 @@
                 },
                 
                 searchRepo : function( keyword, owner, repo ) {
-                    console.log( keyword );
                     this.appView.model.update(keyword);
                     
                     if( keyword && keyword.length > 0 ){
                         this.searchResultView.model.setKeyword(keyword);
                         gh.repo.search( keyword, this, function ( response ) {
-                            console.log( response );
                             app.searchResultView.model.setNbResultats( response.repositories.length );
                             app.repositoryListView.model.set( response.repositories );
                         } );
@@ -236,7 +236,6 @@
                     if( this.appView.model.get("search") != keyword ){
                         this.searchRepo( keyword );
                     }
-                    console.log( owner + " - "  + repo );
                     if( owner && owner.length > 0 && repo && repo.length > 0 ){
                         var repo = gh3.repo(owner, repo);
                         app.collaborators = [];
@@ -256,11 +255,12 @@
                         this.collaboratorListView.reset();
                         $("#pieTitle").empty();
                         $("#holder").empty();
+                        $("#barHolder").empty();
                     }
                 },
                 
                 renderStats : function( commits ){
-                    var dates = {}, authors = {}, labels = [], values = [];
+                    var dates = {}, authors = {}, labels = [], values = [],dateLabels = [], dateValues = [];
                     
                     _.each( commits, function( commit ){
                         var currentDate = commit.commit.committer.date.substring(0,10);
@@ -280,7 +280,59 @@
                     
                     $("#holder").empty();
                     $("#pieTitle").html( $("#tpl-pie-title").html() );
-                    Raphael("holder", 700, 700).pieChart(350, 280, 200, values, labels, "#fff");                    
+                    Raphael("holder", 800, 550).pieChart(400, 280, 200, values, labels, "#fff");                    
+                    
+                    for( var key in dates ){
+                        dateLabels.push( key );
+                        dateValues.push( dates[key] );
+                    }
+                    
+                    if( dateLabels.length > 1 ){
+                        var first = new Date( dateLabels[0] ).getTime();
+                        var last = new Date( dateLabels[dateLabels.length-1] ).getTime();
+                        if( ( (first - last ) / ( 1000 * 3600 * 24 ) ) < 30 ){
+                            var newLabels = [], newValues = [];
+                            var dateIndex = first;
+                            for( var index = 0; index < dateLabels.length; index++){
+                                var current = new Date( dateLabels[index] ).getTime();
+                                while( dateIndex > ( current + ( 1000 * 3600 * 24 ) ) ){
+                                    dateIndex -= ( 1000 * 3600 * 24 );
+                                    var label = new Date();
+                                    label.setTime( dateIndex );
+                                    newLabels.push(  ( 1900 + label.getYear() ) + "-" + ("0" + (label.getMonth()+1)).slice(-2) + " - " + ("0" + label.getDate()).slice(-2) );
+                                    newValues.push( 0 );
+                                }
+                                newLabels.push( dateLabels[index] );
+                                newValues.push( dateValues[index] );
+                                dateIndex = new Date( dateLabels[index] ).getTime();
+                            }
+                            dateLabels = newLabels;
+                            dateValues = newValues;
+                        }
+                    }
+                  
+                    $("#barHolder").empty();
+                    chart = new Highcharts.Chart({
+                        chart: { renderTo: 'barHolder', type: 'column' },
+                        title: { text: 'Repartition of the last hundred commits by day' },
+                        xAxis: {   
+                            categories: dateLabels,
+                            labels: { rotation: -60, align: 'right', } 
+                        },
+                        yAxis: { min: 0, title: { text: 'commit' } },
+                        legend: { layout: 'vertical', backgroundColor: '#FFFFFF',
+                            align: 'left',
+                            verticalAlign: 'top',
+                            x: 100,     
+                            y: 70,
+                            floating: true,
+                            shadow: true
+                        },
+                        tooltip: { formatter: function() { return ''+ this.x +': '+ this.y; } },
+                        plotOptions: { column: { pointPadding: 0.2, borderWidth: 0} },
+                        series: [{ name: 'Commit per day', data: dateValues }]
+                    });
+
                 }
                 
             });
